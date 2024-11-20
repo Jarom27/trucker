@@ -29,6 +29,13 @@ async def client_connection(reader,writer):
                 writer.write(response)
             elif message_type == "0003":
                 break
+            elif message_type == "0102":
+                message_length = b"\x02"
+                response = b"\x7e\x82\x01"+message_length+device_id
+                response += bytes([serial_number])
+                response += calculate_checksum(response)
+                response += b"\x7e"
+                writer.write(response)
         except FileNotFoundError:
             pass
 
@@ -39,7 +46,7 @@ async def main():
     HOST = os.environ.get("HOST")
     PORT = os.environ.get("PORT")
     ENV = os.environ.get("ENV")
-    
+
     server = await asyncio.start_server(client_connection,HOST,PORT)
 
     if ENV == "Development":
