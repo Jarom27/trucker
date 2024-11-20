@@ -6,8 +6,8 @@ from utilities.extractors import identify_message_type,identify_device_id
 from utilities.calculations import calculate_checksum
 import os
 
-
-dotenv.load_dotenv()
+if os.environ.get("ENV"):
+    dotenv.load_dotenv()
 
 HOST = os.environ.get("HOST")
 PORT = os.environ.get("PORT")
