@@ -38,8 +38,14 @@ async def client_connection(reader,writer):
 async def main():
     HOST = os.environ.get("HOST")
     PORT = os.environ.get("PORT")
-    server = await asyncio.start_server(client_connection,HOST,PORT)
+    ENV = os.environ.get("ENV")
     
+    server = await asyncio.start_server(client_connection,HOST,PORT)
+
+    if ENV == "Development":
+        addrs = ', '.join(str(sock.getsockname()) for sock in server.sockets)
+        print(f'Serving on {addrs}')
+
     async with server:
         await server.serve_forever()
         
