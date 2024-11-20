@@ -6,11 +6,7 @@ from utilities.extractors import identify_message_type,identify_device_id
 from utilities.calculations import calculate_checksum
 import os
 
-if os.environ.get("ENV"):
-    dotenv.load_dotenv()
-
-HOST = os.environ.get("HOST")
-PORT = os.environ.get("PORT")
+dotenv.load_dotenv()
 
 async def client_connection(reader,writer):
     serial_number = 0
@@ -40,6 +36,8 @@ async def client_connection(reader,writer):
     await writer.wait_closed()
 
 async def main():
+    HOST = os.environ.get("HOST")
+    PORT = os.environ.get("PORT")
     server = await asyncio.start_server(client_connection,HOST,PORT)
     
     async with server:
