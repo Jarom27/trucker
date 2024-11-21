@@ -1,7 +1,7 @@
 import asyncio
 import dotenv
 from datetime import datetime
-from utilities.logs import register_connection
+from utilities.logs import register_connection, location_log
 from utilities.extractors import identify_message_type,identify_device_id
 from utilities.calculations import calculate_checksum
 import os
@@ -36,6 +36,8 @@ async def client_connection(reader,writer):
                 response += calculate_checksum(response)
                 response += b"\x7e"
                 writer.write(response)
+            elif message_type == "0200":
+                location_log(f"location: {message} : {datetime.now()}")
         except FileNotFoundError:
             pass
 
