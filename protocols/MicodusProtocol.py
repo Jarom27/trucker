@@ -16,7 +16,7 @@ class MicodusProtocol(IGPSProtocol):
 
     def handle_identification(self):
         print("Indentification process")
-        response_message = self.build_message(b"\x81\x00", message_length=b"\x00\x02", message_result=b"\x00\x00")
+        response_message = self.build_message(b"\x81\x00", message_length=b"\x02", message_result=b"\x00\x00")
         print(f"Message data: {response_message.hex()}")
         self.send_response(response_message)
         return 0
