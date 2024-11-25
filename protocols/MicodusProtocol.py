@@ -33,7 +33,7 @@ class MicodusProtocol(IGPSProtocol):
         """Build a Micodus Message"""
         response_message_type = message_type
         response_message_length = message_length
-        response_message_serial = self.serial_number.to_bytes()
+        response_message_serial = self.serial_number.to_bytes(length=2,byteorder="big")
 
         response = b"\x7e"
         
