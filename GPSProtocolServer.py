@@ -26,11 +26,13 @@ class GPSProtocolServer(Protocol):
     async def process_message(self,request):
         try:
             result = await self.handler_chain.handle(request)
-            message_type = request["message_type"]
-            print(f"Result: {result}, {message_type}")
             protocol = request["protocol"]
-            print("Executing commands")
-            protocol.execute_message(request, self.transport)
+            print("Processing data")
+            protocol.send_response = self.transport.write
+            response = protocol.process_message(request["data"])
+
+            if response == -1:
+                self.transport.close()
                 
         except Exception as e:
             print(f"Error happen with message: {e}")

@@ -1,67 +1,74 @@
 from .IGPSProtocol import IGPSProtocol
+from utilities.calculations import calculate_xor_checksum
 from asyncio import Transport
 
 class MicodusProtocol(IGPSProtocol):
-    def __init__(self):
-        self.message_type = ""
-        self.device_id = ""
-        self.body_length = 0
+
+    def __init__(self, send_response_callback):
+        self.send_response = send_response_callback
         self.serial_number = 0
-    
+        self.device_id = None
+        
     def identify_message_type(self,data:bytes):
         message = ''.join([hex(byte) for byte in data[1:3]])
         message_type = message.replace("0x","")
         return message_type
+
+    def handle_identification(self):
+        print("Indentification process")
+        response_message = self.build_message(b"\x81\x00", message_length=b"\x00\x04", message_result=b"\x00\x00")
+        print(f"Message data: {response_message.hex()}")
+        self.send_response(response_message)
+        return 0
+    def handle_authenticacion(self):
+        print("Autentiffication process")
+        self.request_position()
+
+    def request_position(self):
+        print("Requesting location")
+        response_message = self.build_message(message_type=b"\x82\x01")
+        self.send_response(response_message)
+
+    def build_message(self, message_type, message_body = None, message_length=b"\x00\x00", message_result = None) -> bytes:
+        """Build a Micodus Message"""
+        response_message_type = message_type
+        response_message_length = message_length
+        response_message_serial = self.serial_number.to_bytes()
+
+        response = b"\x7e"
         
-    def identify_device_id(self,data:bytes):
-        message = ''.join([hex(byte) for byte in data[5:11]])
-        device_id = message.replace("0x","")
-        return device_id
+        #Header
+        response += response_message_type + response_message_length + self.device_id + response_message_serial
 
-    def get_body_length(self,data:bytes):
-        return int.from_bytes(data[3:5],byteorder="big")
+        #Content
+        if message_body and type(message_body) == bytes:
+            response += message_body
 
-    def process_message(self,request):
+        if message_result and type(message_result) == bytes:
+            response += message_result
+
+        response_checksum = calculate_xor_checksum(response[1:])
+        response += response_checksum
+
+        response += b"\x7e"
+        return response
+
+    def process_message(self, message: bytes):
         print("Processing data using Micodus Protocol")
-        data = request["data"]
-        self.message_type = self.identify_message_type(data)
-        self.device_id = self.identify_device_id(data)
-        self.body_length = self.get_body_length(data)
-        self.serial_number = (self.serial_number + 1) % 0xFFFF
-        request["message_type"] = self.message_type
-        request["device_id"] = self.device_id
-        request["body_length"] = self.body_length
-        return {"status": "200"}
+
+        message_type = self.identify_message_type(message)
+        self.device_id = message[5:11]
+        is_sucess = 0
+
+        if message_type == "03":
+            return -1
+        elif message_type == "10":
+            is_sucess = self.handle_identification()
+        elif message_type == "12":
+            is_sucess = self.handle_authenticacion()
+        elif message_type == "20":
+            print(f"Location: {message.hex()}")
+
+        return is_sucess
     
-    def execute_message(self,request,transport:Transport):
-        print(request["message_type"])
-        if request["message_type"] == "03":
-            print("Closing connection")
-            transport.close()
-        elif request["message_type"] == "10":
-            print(request["device_id"])
-            reply_message = b"\x7e\x81\x00\x00\x0a"+request["data"][5:11]+b""+self.serial_number.to_bytes(2,byteorder="big")+b"\x00\x00"
-            checksum = self.calculate_checksum(reply_message)
-            reply_message += checksum
-            reply_message += b'\x7e'
-            print("Repply: "+reply_message.hex())
-            transport.write(reply_message)
-        elif request["message_type"] == "12":
-            print(request["device_id"])
-            reply_message = b"\x7e\x82\x01\x00\x0a"+request["data"][5:11]+b""+self.serial_number.to_bytes(2,byteorder="big")
-            checksum = self.calculate_checksum(reply_message)
-            reply_message += checksum
-            reply_message += b'\x7e'
-            print("Repply: "+reply_message.hex())
-            transport.write(reply_message)
-        elif request["message_type"] == "0200":
-            print(request["device_id"])
-            
-    def calculate_checksum(self,message: bytes):
-        checksum = message[1]
-        for byte in message[2:]:
-            checksum = checksum ^ byte
-        return bytes([checksum])
-            
-        
-        
+   

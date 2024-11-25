@@ -8,8 +8,6 @@ class ProtocolHandler(Handler.Handler):
     async def handle(self,request):
         print("Selecting protocol")
         protocol = self.selector.get_protocol(request["data"])
-        response = protocol.process_message(request)
-        request["response"] = response
         request["protocol"] = protocol
         
         return await super().handle(request)

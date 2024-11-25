@@ -4,7 +4,7 @@ from protocols.MicodusProtocol import MicodusProtocol
 class ProtocolSelector:
     def __init__(self):
         self.protocols = {
-            "micodus": MicodusProtocol(),
+            "micodus": MicodusProtocol(None),
         }
 
     def get_protocol(self, message:bytes) -> IGPSProtocol:
