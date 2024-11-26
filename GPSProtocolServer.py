@@ -6,6 +6,7 @@ class GPSProtocolServer(Protocol):
         self.transport = None
         self.handler_chain = handler_chain
         self.addr = None
+
     def connection_made(self,transport: Transport):
         self.transport = transport
         self.addr = transport.get_extra_info("peername")
@@ -16,7 +17,6 @@ class GPSProtocolServer(Protocol):
         message = {"ip": self.addr[0], "data": data}  # Simular identificación del dispositivo
         create_task(self.process_message(message))
         
-
     def connection_lost(self,exec):
         if exec:
             print(f"Conexión perdida con {self.addr} debido a un error: {exec}")
@@ -25,12 +25,15 @@ class GPSProtocolServer(Protocol):
 
     async def process_message(self,request):
         try:
+            #identify protocol chain
             result = await self.handler_chain.handle(request)
             protocol = request["protocol"]
             print("Processing data")
             protocol.send_response = self.transport.write
-            response = protocol.process_message(request["data"])
 
+            #manage the data according the protocol
+
+            response = protocol.process_message(request["data"])
             if response == -1:
                 self.transport.close()
                 

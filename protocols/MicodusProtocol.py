@@ -3,7 +3,6 @@ from utilities.calculations import calculate_xor_checksum
 from asyncio import Transport
 
 class MicodusProtocol(IGPSProtocol):
-
     def __init__(self, send_response_callback):
         self.send_response = send_response_callback
         self.serial_number = 0
@@ -20,13 +19,14 @@ class MicodusProtocol(IGPSProtocol):
         print(f"Message data: {response_message.hex()}")
         self.send_response(response_message)
         return 0
+
     def handle_authenticacion(self):
         print("Autentiffication process")
         self.request_position()
 
     def request_position(self):
         print("Requesting location")
-        response_message = self.build_message(message_type=b"\x82\x01")
+        response_message = self.build_message(message_type=b"\x82\x00")
         self.send_response(response_message)
 
     def build_message(self, message_type, message_body = None, message_length=b"\x00\x00", message_result = None) -> bytes:
@@ -68,6 +68,8 @@ class MicodusProtocol(IGPSProtocol):
             is_sucess = self.handle_authenticacion()
         elif message_type == "20":
             print(f"Location: {message.hex()}")
+        elif message_type == "21":
+            pass
 
         return is_sucess
     
