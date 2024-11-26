@@ -19,7 +19,7 @@ class GPSProtocolServer(Protocol):
 
     def connection_lost(self,exec):
         if exec:
-            print(f"Conexión perdida con {self.addr} debido a un error: {exc}")
+            print(f"Conexión perdida con {self.addr} debido a un error: {exec}")
         else:
             print(f"Conexión cerrada con {self.addr}")
 
