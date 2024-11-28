@@ -32,9 +32,9 @@ class MicodusProtocol(IGPSProtocol):
         return {"status" : ResponseStates.SENT_RESPONSE, "message" : response_message}
     
     def parse_data(self,message:bytes) -> dict:
-        hexa_lat = int.from_bytes(message[23:27]) / 10**6
+        hexa_lat = int.from_bytes(message[23:27],byteorder="big") / 10**6
         latitude = convert_decimal_to_grades(hexa_lat)
-        hexa_long = int.from_bytes(message[27:31])
+        hexa_long = int.from_bytes(message[27:31],byteorder="big")
         longitude = convert_decimal_to_grades(hexa_long)
         altitude = int.from_bytes(message[31:33],byteorder="big")
 
