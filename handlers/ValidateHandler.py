@@ -1,4 +1,4 @@
-from Handler import Handler
+from handlers.Handler import Handler
 
 class ValidateHandler(Handler):
     async def handle(self, request):

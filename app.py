@@ -1,8 +1,9 @@
 
-from ProtocolHandler import ProtocolHandler
-from LogHandler import LogHandler
-from ValidateHandler import ValidateHandler
-from ProtocolSelector import ProtocolSelector
+from handlers.ProtocolHandler import ProtocolHandler
+from handlers.LogHandler import LogHandler
+from handlers.ValidateHandler import ValidateHandler
+from handlers.ProtocolSelector import ProtocolSelector
+from handlers.ManageHandler import ManageHandler
 from GPSProtocolServer import GPSProtocolServer
 import asyncio
 import dotenv
@@ -16,7 +17,8 @@ async def main():
     PORT = os.environ.get("PORT")
     # Crear la cadena de responsabilidad
     protocol_selector = ProtocolSelector()
-    log_handler = LogHandler()
+    manage_handler = ManageHandler()
+    log_handler = LogHandler(manage_handler)
     protocol_handler = ProtocolHandler(protocol_selector, log_handler)
     validate_handler = ValidateHandler(protocol_handler)
     

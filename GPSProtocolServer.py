@@ -1,5 +1,6 @@
 from asyncio import Protocol,Transport,create_task
-from Handler import Handler
+from handlers.Handler import Handler
+from Response_States import ResponseStates
 
 class GPSProtocolServer(Protocol):
     def __init__(self, handler_chain: Handler):
@@ -26,16 +27,16 @@ class GPSProtocolServer(Protocol):
     async def process_message(self,request):
         try:
             #identify protocol chain
+            print("Start process")
             result = await self.handler_chain.handle(request)
-            protocol = request["protocol"]
-            print("Processing data")
-            protocol.send_response = self.transport.write
-
-            #manage the data according the protocol
-
-            response = protocol.process_message(request["data"])
-            if response == -1:
+            print(f"Result: {result}")
+            status = result["status"]
+            if ResponseStates.CLOSE_CONNECTION == status:
                 self.transport.close()
+                print("Disconnect order was permormed with success")
+            elif ResponseStates.SENT_RESPONSE == status:
+                print("Send message")
+                self.transport.write(result["message"])
                 
         except Exception as e:
             print(f"Error happen with message: {e}")

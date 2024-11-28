@@ -1,6 +1,7 @@
 from .IGPSProtocol import IGPSProtocol
-from utilities.calculations import calculate_xor_checksum
+from utilities.calculations import calculate_xor_checksum,convert_decimal_to_grades
 from asyncio import Transport
+from Response_States import ResponseStates
 
 class MicodusProtocol(IGPSProtocol):
     def __init__(self, send_response_callback):
@@ -17,17 +18,33 @@ class MicodusProtocol(IGPSProtocol):
         print("Indentification process")
         response_message = self.build_message(b"\x81\x00", message_length=b"\x02", message_result=b"\x00\x00")
         print(f"Message data: {response_message.hex()}")
-        self.send_response(response_message)
-        return 0
+        #self.send_response(response_message)
+        return {"status" : ResponseStates.SENT_RESPONSE, "message" : response_message}
 
     def handle_authenticacion(self):
         print("Autentiffication process")
-        self.request_position()
+        return self.request_position()
 
     def request_position(self):
         print("Requesting location")
         response_message = self.build_message(message_type=b"\x82\x00")
-        self.send_response(response_message)
+        #self.send_response(response_message)
+        return {"status" : ResponseStates.SENT_RESPONSE, "message" : response_message}
+    
+    def parse_data(self,message:bytes) -> dict:
+        hexa_lat = int.from_bytes(message[23:27]) / 10**6
+        latitude = convert_decimal_to_grades(hexa_lat)
+        hexa_long = int.from_bytes(message[27:31])
+        longitude = convert_decimal_to_grades(hexa_long)
+        altitude = int.from_bytes(message[31:33],byteorder="big")
+
+        location_report = {
+                "latitude" : latitude, 
+                "longitude" : longitude, 
+                "altitude" : altitude
+            }
+        return location_report
+        
 
     def build_message(self, message_type, message_body = None, message_length=b"\x00\x00", message_result = None) -> bytes:
         """Build a Micodus Message"""
@@ -58,19 +75,21 @@ class MicodusProtocol(IGPSProtocol):
 
         message_type = self.identify_message_type(message)
         self.device_id = message[5:11]
-        is_sucess = 0
+        response = 0
 
         if message_type == "03":
-            return -1
+            return {"status" : ResponseStates.CLOSE_CONNECTION}
         elif message_type == "10":
-            is_sucess = self.handle_identification()
+            response = self.handle_identification()
         elif message_type == "12":
-            is_sucess = self.handle_authenticacion()
+            response = self.handle_authenticacion()
         elif message_type == "20":
             print(f"Location: {message.hex()}")
+            location_report = self.parse_data(message)
+            response = {"status" : ResponseStates.AUTHENTICATION,"location" :  location_report}
         elif message_type == "21":
             pass
 
-        return is_sucess
+        return response
     
    
