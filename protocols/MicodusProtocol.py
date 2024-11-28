@@ -83,11 +83,11 @@ class MicodusProtocol(IGPSProtocol):
             response = self.handle_identification()
         elif message_type == "12":
             response = self.handle_authenticacion()
-        elif message_type == "20":
+        elif message_type == "21":
             print(f"Location: {message.hex()}")
             location_report = self.parse_data(message)
             response = {"status" : ResponseStates.AUTHENTICATION,"location" :  location_report}
-        elif message_type == "21":
+        elif message_type == "20":
             pass
 
         return response
