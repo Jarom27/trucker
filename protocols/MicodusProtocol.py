@@ -27,7 +27,7 @@ class MicodusProtocol(IGPSProtocol):
 
     def request_position(self):
         print("Requesting location")
-        response_message = self.build_message(message_type=b"\x82\x00")
+        response_message = self.build_message(message_type=b"\x82\x01")
         #self.send_response(response_message)
         return {"status" : ResponseStates.SENT_RESPONSE, "message" : response_message}
     
