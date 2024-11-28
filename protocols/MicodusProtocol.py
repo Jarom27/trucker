@@ -35,7 +35,7 @@ class MicodusProtocol(IGPSProtocol):
         hexa_lat = int.from_bytes(message[23:27],byteorder="big") / 10**6
         latitude = convert_decimal_to_grades(hexa_lat)
         hexa_long = int.from_bytes(message[27:31],byteorder="big")
-        longitude = convert_decimal_to_grades(hexa_long)
+        longitude = convert_decimal_to_grades(hexa_long) / 10**6
         altitude = int.from_bytes(message[31:33],byteorder="big")
 
         location_report = {
