@@ -1,65 +1,45 @@
+
+from handlers.ProtocolHandler import ProtocolHandler
+from handlers.LogHandler import LogHandler
+from handlers.ValidateHandler import ValidateHandler
+from handlers.ProtocolSelector import ProtocolSelector
+from handlers.ManageHandler import ManageHandler
+from handlers.DbHandler import DbHandler
+from GPSProtocolServer import GPSProtocolServer
+from database.Database import create_pool
 import asyncio
 import dotenv
-from datetime import datetime
-from utilities.logs import register_connection, location_log
-from utilities.extractors import identify_message_type,identify_device_id
-from utilities.calculations import calculate_checksum
 import os
 
 dotenv.load_dotenv()
 
-async def client_connection(reader,writer):
-    serial_number = 0
-    while True:
-        data = await reader.read(1024)
-        addr = writer.get_extra_info("peername")
-        message = ''.join([hex(byte) for byte in data])
-        serial_number += 1
-        try:
-            await register_connection(f"{addr}: {message} : {datetime.now()}")
-            message_type = identify_message_type(data)
-            device_id = identify_device_id(data)
-            if message_type == "0100":
-                message_length = b"\x02"
-                response = b"\x7e\x81\x00"+message_length+device_id
-                response += bytes([serial_number])
-                response += b"\x00\x00" #result
-                response += calculate_checksum(response)
-                response += b"\x7e"
-                writer.write(response)
-            elif message_type == "0003":
-                break
-            elif message_type == "0102":
-                message_length = b"\x02"
-                response = b"\x7e\x82\x01"+message_length+device_id
-                response += bytes([serial_number])
-                response += calculate_checksum(response)
-                response += b"\x7e"
-                writer.write(response)
-            elif message_type == "0200":
-                location_log(f"location: {message} : {datetime.now()}")
-        except FileNotFoundError:
-            pass
-
-    writer.close()
-    await writer.wait_closed()
-
 async def main():
+    loop = asyncio.get_running_loop()
     HOST = os.environ.get("HOST")
     PORT = os.environ.get("PORT")
-    ENV = os.environ.get("ENV")
+    
+    #Conexion a la base de datos
+    pool = await create_pool()
 
-    server = await asyncio.start_server(client_connection,HOST,PORT)
+    # Crear la cadena de responsabilidad
+    protocol_selector = ProtocolSelector()
+    db_handler = DbHandler(pool)
+    manage_handler = ManageHandler(db_handler)
+    log_handler = LogHandler(manage_handler)
+    protocol_handler = ProtocolHandler(protocol_selector, log_handler)
+    validate_handler = ValidateHandler(protocol_handler)
+    
+    # Crear servidor TCP con la cadena de responsabilidad
+    server = await loop.create_server(lambda: GPSProtocolServer(validate_handler), HOST, PORT)
+    print(f"Servidor corriendo en {HOST}:{PORT}")
 
-    if ENV == "Development":
-        addrs = ', '.join(str(sock.getsockname()) for sock in server.sockets)
-        print(f'Serving on {addrs}')
-
-    async with server:
+    try:
         await server.serve_forever()
-        
+    except asyncio.CancelledError:
+        print("Servidor detenido.")
+
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Bye...")
+        print("Servidor detenido.")

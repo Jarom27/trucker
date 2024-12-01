@@ -32,14 +32,12 @@ class MicodusProtocol(IGPSProtocol):
         return {"status" : ResponseStates.SENT_RESPONSE, "message" : response_message}
     
     def parse_data(self,message:bytes) -> dict:
-        hexa_lat = int.from_bytes(message[23:27],byteorder="big") / 10**6
-        latitude = convert_decimal_to_grades(hexa_lat)
-        hexa_long = int.from_bytes(message[27:31],byteorder="big")
-        longitude = convert_decimal_to_grades(hexa_long) / 10**6
-        altitude = int.from_bytes(message[31:33],byteorder="big")
+        latitude = int.from_bytes(message[23:27],byteorder="big") / 10**6
+        longitude = int.from_bytes(message[27:31],byteorder="big") / 10**6 * -1
+        altitude = int.from_bytes(message[31:33],byteorder="big") / 1.0
 
         location_report = {
-                "latitude" : latitude, 
+                "latitude" : latitude,
                 "longitude" : longitude, 
                 "altitude" : altitude
             }
@@ -86,9 +84,11 @@ class MicodusProtocol(IGPSProtocol):
         elif message_type == "21":
             print(f"Location: {message.hex()}")
             location_report = self.parse_data(message)
-            response = {"status" : ResponseStates.AUTHENTICATION,"location" :  location_report}
+            response = {"status" : ResponseStates.AUTHENTICATION,"device_id" : self.device_id,"location" :  location_report}
         elif message_type == "20":
-            pass
+            print(f"Location: {message.hex()}")
+            location_report = self.parse_data(message)
+            response = {"status" : ResponseStates.AUTHENTICATION,"device_id" : self.device_id,"location" :  location_report}
 
         return response
     
