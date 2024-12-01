@@ -7,7 +7,7 @@ async def create_pool():
     
     return await aiomysql.create_pool(
         host=os.environ.get("MYSQL_HOST"),
-        port=int(os.environ.get("MYSQL_PORT")),
+        port=int(os.environ.get("MYSQL_PORT",3306)),
         user=os.environ.get("MYSQL_USER"),
         password=os.environ.get("MYSQL_PASS"),
         db=os.environ.get("MYSQL_NAME"),
