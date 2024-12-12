@@ -54,12 +54,27 @@ func handleConnection(conn net.Conn) {
 	raw_message := make(chan []byte, 1024)
 	protocol_message := make(chan handlers.Procotol_Message, 1024)
 	aproved_messages := make(chan handlers.Procotol_Message, 1024)
-
+	response_gps := make(chan handlers.Response_GPS, 1024)
+	location_reports := make(chan handlers.Location_report, 1024)
+	leavings := make(chan interface{}, 1024)
 	//Identify protocol
 	go handlers.IdentifyProtocol(raw_message, protocol_message)
 
 	//Validate Checksu
 	go handlers.ValidateMessage(protocol_message, aproved_messages)
+
+	go handlers.Process(protocol_message, response_gps, location_reports, leavings)
+
+	go func() {
+		select {
+		case response := <-response_gps:
+			conn.Write(response.Message)
+		case location := <-location_reports:
+			fmt.Println(location)
+		case <-leavings:
+			conn.Close()
+		}
+	}()
 
 	for {
 		n, err := conn.Read(buffer)
@@ -68,10 +83,13 @@ func handleConnection(conn net.Conn) {
 			log.Printf("There is an error while receiving data: %s\n", err)
 			break
 		}
-
+		log.Printf("Receiveng this message from GPS %x\n", buffer[:n])
 		raw_message <- buffer[:n]
 	}
+	close(response_gps)
+	close(location_reports)
 	close(raw_message)
 	close(protocol_message)
 	close(aproved_messages)
+	close(leavings)
 }
