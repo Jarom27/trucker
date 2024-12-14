@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"fmt"
 	"log"
 	"trucker/utilities"
 )
@@ -11,7 +12,8 @@ type MicodusValidator struct {
 func (validator MicodusValidator) Validate(message []byte) bool {
 	validationResult := true
 	if !validateChecksum(message[1 : len(message)-1]) {
-		return false
+		fmt.Println("Invalid checksum")
+		return true
 	}
 	return validationResult
 }

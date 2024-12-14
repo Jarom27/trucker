@@ -4,6 +4,16 @@
     // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        {
+            "name": "Launch",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "env": {},
+            "args": []
+          },
+
         {"name":"Depurador de Python: Archivo actual","type":"debugpy","request":"launch","program":"${file}","console":"integratedTerminal"}
 
     ]

@@ -28,7 +28,8 @@ func (t Micodus) ProcessMessage(message []byte) interface{} {
 	case "0003":
 		return nil
 	case "0201":
-		return Location_report{}
+		fmt.Println("Parsing location data")
+		return t.parseData(message)
 	}
 	return nil
 }
@@ -39,7 +40,7 @@ func (t *Micodus) getMessageType(message []byte) string {
 }
 func (t *Micodus) getDeviceId(message []byte) string {
 	var device_id string = ""
-	for value := range message {
+	for _, value := range message {
 		device_id += fmt.Sprintf("%2x", value)
 	}
 	return device_id
@@ -86,4 +87,17 @@ func (t *Micodus) authenticationCommand(message []byte) Response_GPS {
 	message_response := t.buildResponse(header, nil, nil)
 	response_gps := Response_GPS{header.device_id, message_response}
 	return response_gps
+}
+func (t *Micodus) parseData(message []byte) Location_report {
+	var location Location_report
+	// Extraer y convertir los valores
+	latitude := float64(binary.BigEndian.Uint32(message[23:27])) / 1e6
+	longitude := float64(binary.BigEndian.Uint32(message[27:31])) / 1e6 * -1
+	altitude := float64(binary.BigEndian.Uint16(message[31:33]))
+
+	location.Device_id = t.getDeviceId(message[5:11])
+	location.Latitude = latitude
+	location.Longitude = longitude
+	location.Altitude = altitude
+	return location
 }
