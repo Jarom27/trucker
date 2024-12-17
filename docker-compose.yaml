@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  queue:
+    image: rabbitmq:3-management
+    ports:
+      - 15672:15672
+      - 5672:5672
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  trucker-tcp:
+    build: .
+    ports:
+      - 7700:7700
+    depends_on:
+      - queue
+volumes:
+  rabbitmq-data:
