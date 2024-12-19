@@ -105,10 +105,28 @@ func publishToRabbitMQ(location handlers.Location_report) {
 		false,               // no-wait
 		nil,                 // arguments
 	)
+	_, err = ch.QueueDeclare(
+		"location_queue", // Nombre de la cola
+		true,             // Durable
+		false,            // Auto delete
+		false,            // Exclusive
+		false,            // No-wait
+		nil,              // Arguments
+	)
 	if err != nil {
 		log.Fatalf("Failed to declare an exchange: %s", err)
 	}
 
+	err = ch.QueueBind(
+		"location_queue",    // Nombre de la cola
+		"",                  // Routing key
+		"location_exchange", // Exchange
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatal("Error with binding chanels")
+	}
 	// Publish the location message
 	body := fmt.Sprintf("Device: %s, Lat: %f, Lon: %f, Alt: %f",
 		location.Device_id, location.Latitude, location.Longitude, location.Altitude)
