@@ -20,7 +20,7 @@ func main() {
 	)
 
 	if err != nil {
-		fmt.Printf("There was an error during the registration of queue: %s", err)
+		fmt.Printf("There was an error during the registration of queue: %s\n", err)
 	}
 	strategy := protocols.NewProtocolStrategy()
 	service := protocols.NewProtocolService(strategy, sender)

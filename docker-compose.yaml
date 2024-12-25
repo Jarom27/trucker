@@ -15,6 +15,11 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBIT_DEFAULT_PASS}
     command: >
       rabbitmq-server --load_definitions /etc/rabbitmq/definitions.json
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   trucker-tcp:
     build:
@@ -24,9 +29,16 @@ services:
     ports:
       - "7700:7700"
     depends_on:
-      - queue
+      queue:
+        condition: service_healthy
     environment:
       TRUCKER_HOST: ${TRUCKER_HOST}
+      TRUCKER_PORT: ${TRUCKER_PORT}
+      RABBIT_HOST: ${RABBIT_HOST}
+      RABBIT_PORT: ${RABBIT_PORT}
+      RABBIT_QUEUE_NAME: ${RABBIT_QUEUE_NAME}
+      RABBIT_DEFAULT_USER: ${RABBIT_DEFAULT_USER}
+      RABBIT_DEFAULT_PASS: ${RABBIT_DEFAULT_PASS}
 
 volumes:
   rabbitmq-data:
