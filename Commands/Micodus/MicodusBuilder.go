@@ -1,7 +1,7 @@
 package micodus
 
 import (
-	commands "trucker/Commands"
+	"trucker/commands"
 )
 
 type MicodusBuilder struct {

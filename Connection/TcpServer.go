@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	protocols "trucker/Protocols"
+	"trucker/protocols"
 )
 
 type TCPServer struct {

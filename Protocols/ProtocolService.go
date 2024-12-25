@@ -3,19 +3,22 @@ package protocols
 import (
 	"fmt"
 	"sync"
-	micodus "trucker/Commands/Micodus"
+	"trucker/commands/micodus"
+	"trucker/messaging"
 )
 
 // Servicio con concurrencia
 type ProtocolService struct {
 	strategy *ProtocolStrategy
+	sender   messaging.Messenger
 	mu       sync.Mutex // Para proteger recursos compartidos (si los hay)
 }
 
 // Constructor
-func NewProtocolService(strategy *ProtocolStrategy) *ProtocolService {
+func NewProtocolService(strategy *ProtocolStrategy, sender messaging.Messenger) *ProtocolService {
 	return &ProtocolService{
 		strategy: strategy,
+		sender:   sender,
 	}
 }
 

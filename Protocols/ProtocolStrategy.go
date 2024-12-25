@@ -3,8 +3,8 @@ package protocols
 import (
 	"bytes"
 	"fmt"
-	commands "trucker/Commands"
-	micodus "trucker/Commands/Micodus"
+	"trucker/commands"
+	"trucker/commands/micodus"
 )
 
 type Protocol = commands.Protocol

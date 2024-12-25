@@ -2,7 +2,7 @@ package micodus
 
 import (
 	"fmt"
-	commands "trucker/Commands"
+	"trucker/commands"
 )
 
 type MicodusManager struct {
