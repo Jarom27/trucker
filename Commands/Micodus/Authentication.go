@@ -1,15 +1,20 @@
 package micodus
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"trucker/commands"
+)
 
 type Authentication struct {
 	Device_id    []byte
 	SerialNumber int32
 }
 
-func (t *Authentication) Execute(message []byte) ([]byte, error) {
+func (t *Authentication) Execute(message []byte) (commands.CommandResponse, error) {
 	t.Device_id = message[5:11]
-	return t.response_GPS(), nil
+	br := &commands.BaseResponse{Data: make(map[string]interface{})}
+	br.Data["gps"] = t.response_GPS()
+	return br, nil
 }
 func (t *Authentication) response_GPS() []byte {
 	messageBuilder := NewMicodusBuilder()

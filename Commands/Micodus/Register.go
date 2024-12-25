@@ -2,6 +2,7 @@ package micodus
 
 import (
 	"encoding/binary"
+	"trucker/commands"
 )
 
 type Register struct {
@@ -9,9 +10,11 @@ type Register struct {
 	SerialNumber int16
 }
 
-func (t *Register) Execute(message []byte) ([]byte, error) {
+func (t *Register) Execute(message []byte) (commands.CommandResponse, error) {
 	t.Device_id = message[5:11]
-	return t.response_GPS(), nil
+	br := &commands.BaseResponse{Data: make(map[string]interface{})}
+	br.Data["gps"] = t.response_GPS()
+	return br, nil
 }
 func (t *Register) response_GPS() []byte {
 	messageBuilder := NewMicodusBuilder()

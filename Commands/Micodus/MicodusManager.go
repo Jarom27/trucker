@@ -20,7 +20,7 @@ func NewMicodusManager() *MicodusManager {
 	}
 }
 
-func (t *MicodusManager) ExecuteCommand(order string, message []byte) ([]byte, error) {
+func (t *MicodusManager) ExecuteCommand(order string, message []byte) (commands.CommandResponse, error) {
 	if cmd, exists := t.commands[order]; exists {
 		return cmd.Execute(message)
 	}
