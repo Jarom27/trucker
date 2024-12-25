@@ -36,6 +36,16 @@ func (s *ProtocolService) ProcessCommand(message []byte) ([]byte, error) {
 		return nil, fmt.Errorf("command execution failed: %w", err)
 	}
 
-	fmt.Printf("Command Response: %x\n", response)
-	return response, nil
+	server_response, _ := response.ToMap()
+	byteValue, ok := server_response["gps"].([]byte)
+	if !ok {
+		return nil, fmt.Errorf("failed to extract bytes from command response")
+	}
+
+	if value, exists := server_response["location_report"]; exists {
+		s.sender.Send(value)
+	}
+
+	fmt.Printf("Command Response: %x\n", byteValue)
+	return byteValue, nil
 }

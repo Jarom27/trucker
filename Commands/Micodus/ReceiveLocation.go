@@ -3,6 +3,7 @@ package micodus
 import (
 	"encoding/binary"
 	"fmt"
+	"trucker/commands"
 )
 
 type ReceiveLocation struct {
@@ -10,10 +11,12 @@ type ReceiveLocation struct {
 	SerialNumber int32
 }
 
-func (t *ReceiveLocation) Execute(message []byte) ([]byte, error) {
+func (t *ReceiveLocation) Execute(message []byte) (commands.CommandResponse, error) {
 	t.Device_id = message[5:11]
-	fmt.Printf("Location: %x\n", message)
-	return t.response_GPS(), nil
+	br := &commands.BaseResponse{Data: make(map[string]interface{})}
+	br.Data["gps"] = t.response_GPS()
+	br.Data["location_report"] = t.response_Location(message)
+	return br, nil
 }
 func (t *ReceiveLocation) response_GPS() []byte {
 	messageBuilder := NewMicodusBuilder()
@@ -34,4 +37,17 @@ func (t *ReceiveLocation) response_GPS() []byte {
 	messageBuilder.BuildChecksum(MicodusChecksum)
 
 	return messageBuilder.GetResult()
+}
+func (t *ReceiveLocation) response_Location(message []byte) commands.LocationReport {
+	latitude := float64(binary.BigEndian.Uint32(message[23:27])) / 1e6
+	longitude := float64(binary.BigEndian.Uint32(message[27:31])) / 1e6 * -1
+	altitude := float64(binary.BigEndian.Uint16(message[31:33]))
+
+	location := commands.LocationReport{
+		Device_id: fmt.Sprintf("%x", t.Device_id),
+		Latitude:  latitude,
+		Longitude: longitude,
+		Altitude:  altitude,
+	}
+	return location
 }

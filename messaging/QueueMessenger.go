@@ -1,7 +1,9 @@
 package messaging
 
 import (
+	"encoding/json"
 	"fmt"
+	"trucker/commands"
 
 	"github.com/streadway/amqp"
 )
@@ -44,7 +46,18 @@ func NewQueueMessenger(queueName string, user string, pass string, host string, 
 	}, nil
 }
 
-func (q *QueueMessenger) Send(data []byte) error {
+func (q *QueueMessenger) Send(data interface{}) error {
+	switch value := data.(type) {
+	case commands.LocationReport:
+		location_json, err := json.Marshal(value)
+		if err != nil {
+			fmt.Printf("There was an error sending: %s", err)
+		}
+		q.publish(location_json)
+	}
+	return nil
+}
+func (q *QueueMessenger) publish(data []byte) error {
 	err := q.channel.Publish(
 		"",
 		q.queue,
