@@ -32,6 +32,7 @@ func Process(input chan Procotol_Message, gps chan Response_GPS, location chan L
 			gps <- value
 		}
 		if value, ok := response.(Location_report); ok {
+			fmt.Printf("Location: %s,%f,%f,%f\n", value.Device_id, value.Latitude, value.Longitude, value.Altitude)
 			location <- value
 		}
 		if response == nil {

@@ -3,21 +3,30 @@ version: "3"
 services:
   queue:
     image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
-      - 15672:15672
-      - 5672:5672
+      - "15672:15672"
+      - "5672:5672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./definitions.json:/etc/rabbitmq/definitions.json
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_DEFAULT_PASS}
     command: >
-      bash -c "rabbitmq-plugins enable rabbitmq_management &&
-               rabbitmq-server --load_definitions /etc/rabbitmq/definitions.json"
+      rabbitmq-server --load_definitions /etc/rabbitmq/definitions.json
 
   trucker-tcp:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trucker-tcp
     ports:
-      - 7700:7700
+      - "7700:7700"
     depends_on:
       - queue
+    environment:
+      TRUCKER_HOST: ${TRUCKER_HOST}
+
 volumes:
   rabbitmq-data:
