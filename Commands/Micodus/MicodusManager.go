@@ -12,6 +12,7 @@ type MicodusManager struct {
 func NewMicodusManager() *MicodusManager {
 	return &MicodusManager{
 		commands: map[string]commands.Command{
+			"0003": &Close{},
 			"0100": &Register{},
 			"0102": &Authentication{},
 			"0201": &ReceiveLocation{},

@@ -69,6 +69,10 @@ func (s *TCPServer) handleConnection(conn net.Conn, wg *sync.WaitGroup) {
 		if response != nil {
 			fmt.Printf("%x", response)
 			conn.Write(response)
+		} else {
+			break
 		}
 	}
+	fmt.Println("Connection was successful close")
+
 }
